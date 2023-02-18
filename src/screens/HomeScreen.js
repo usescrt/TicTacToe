@@ -19,7 +19,7 @@ function HomeScreen({ navigation }) {
       if (user) {
         // User is signed in.
         console.log("Sing in");
-        setUserUID(user.uid);
+        navigation.navigate("GameList");
       } else {
         // No user is signed in.
         signInAnonymously(auth)
