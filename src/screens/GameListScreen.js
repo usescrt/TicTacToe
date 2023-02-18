@@ -45,23 +45,15 @@ export default function GameListScreen({ navigation }) {
     });
   };
 
-  const handleRemoveItem = (idx) => {
-    // assigning the list to temp variable
-    const temp = [...gameListArray];
-
-    // removing the element using splice
-    temp.splice(idx, 1);
-
-    // updating the list
-    updateList(temp);
-  };
-
   const setMatchFromFirebase = async (gameAreaID) => {
     await updateDoc(doc(db, "GameArea", gameAreaID), {
       isMatch: true,
     }).then(() => {
       // Open Game Area Screen
-      navigation.navigate("GameArea");
+      navigation.navigate("GameArea", {
+        userType: "join",
+        gameAreaID: gameAreaID,
+      });
     });
   };
 

@@ -39,6 +39,7 @@ export default function GameCreateScreen({ navigation }) {
   async function postGameListFirestore(docID) {
     await setDoc(doc(db, "GameList", docID), {
       gameAreaID: docID,
+      userTurn: "creater",
     });
   }
 
@@ -58,7 +59,10 @@ export default function GameCreateScreen({ navigation }) {
       (doc) => {
         if (doc.data().isMatch === true) {
           // Open Game Area
-          navigation.navigate("GameArea");
+          navigation.navigate("GameArea", {
+            userType: "creater",
+            gameAreaDocID: gameAreaDocID,
+          });
         }
       }
     );
