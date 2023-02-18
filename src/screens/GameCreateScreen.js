@@ -1,5 +1,12 @@
 import { Appbar, List, TextInput, Button } from "react-native-paper";
-import { addDoc, doc, collection, setDoc, deleteDoc } from "firebase/firestore";
+import {
+  addDoc,
+  doc,
+  collection,
+  setDoc,
+  deleteDoc,
+  onSnapshot,
+} from "firebase/firestore";
 import { db } from "../../firebaseConfig";
 import { async } from "@firebase/util";
 import { useState } from "react";
@@ -7,7 +14,11 @@ import { useState } from "react";
 export default function GameCreateScreen({ navigation }) {
   // ...
 
-  const [gameAreaDocID, setGameAreaDocID] = useState();
+  var gameAreaDocID = "";
+
+  // ...
+
+  var unsubscribeListenMatch;
 
   // Create Game Area from server
 
@@ -16,19 +27,18 @@ export default function GameCreateScreen({ navigation }) {
     await addDoc(collection(db, "GameArea"), {
       isMatch: false,
     }).then((docRef) => {
-      console.log("Document written with ID: ", docRef.id);
-      setGameAreaDocID(docRef.id);
+      gameAreaDocID = docRef.id;
       postGameListFirestore(docRef.id);
+      // Start Listen isMatch
+      listenMatch();
     });
   }
 
   // ...
 
   async function postGameListFirestore(docID) {
-    setDoc(doc(db, "GameList", docID), {
+    await setDoc(doc(db, "GameList", docID), {
       gameAreaID: docID,
-    }).then(() => {
-      // Open GameList Screen
     });
   }
 
@@ -39,11 +49,28 @@ export default function GameCreateScreen({ navigation }) {
     await deleteDoc(doc(db, "GameList", gameAreaDocID));
   }
 
+  // Listen Game Area isMatch
+
+  function listenMatch() {
+    unsubscribeListenMatch = onSnapshot(
+      doc(db, "GameArea", gameAreaDocID),
+      { includeMetadataChanges: true },
+      (doc) => {
+        if (doc.data().isMatch === true) {
+          // Open Game Area
+          navigation.navigate("GameArea");
+        }
+      }
+    );
+  }
+
   return (
     <>
       <Appbar.Header>
         <Appbar.BackAction
           onPress={() => {
+            // Remove Listener ListenMatch
+            unsubscribeListenMatch();
             // Go Back Game List Screen
             navigation.goBack();
             // Remove Game Area From Firestore

@@ -1,9 +1,9 @@
 import { Appbar, List, TextInput, Button } from "react-native-paper";
-import { onSnapshot, doc, collection } from "firebase/firestore";
+import { onSnapshot, doc, collection, updateDoc } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { async } from "@firebase/util";
-import { FlatList } from "react-native";
+import { FlatList, TouchableOpacity } from "react-native";
 
 class GList {
   constructor(gameAreaID) {
@@ -14,28 +14,56 @@ class GList {
 export default function GameListScreen({ navigation }) {
   // Game List Array
 
-  const [gameListArray, setGameListArray] = useState();
+  const [gameListArray, setGameListArray] = useState([]);
+
+  var unsubscribeGameList;
+
+  const removeGameArea = (temp) => {
+    setGameListArray((prevState) =>
+      prevState.filter((item) => item.gameAreaID !== temp.gameAreaID)
+    );
+  };
 
   // Game List from firestore
 
-  function gameListFirestore() {
-    onSnapshot(collection(db, "GameList"), (doc) => {
-      const tempArray = [];
+  const gameListFirestore = () => {
+    unsubscribeGameList = onSnapshot(collection(db, "GameList"), (doc) => {
       doc.docChanges().forEach((item) => {
-        temp = new GList(item.doc.data().gameAreaID);
-        tempArray.push(temp);
+        const temp = new GList(item.doc.data().gameAreaID);
+
+        // if add game area, added from array
+
+        if (item.type === "added") {
+          setGameListArray((prevState) => [...prevState, temp]);
+        }
 
         // if remove game area, remove from array
         if (item.type === "removed") {
-          const findIndex = tempArray.findIndex(
-            (a) => a.gameAreaID === item.doc.data().gameAreaID
-          );
-          tempArray.splice(findIndex, 1);
+          removeGameArea(temp);
         }
-        setGameListArray(tempArray);
       });
     });
-  }
+  };
+
+  const handleRemoveItem = (idx) => {
+    // assigning the list to temp variable
+    const temp = [...gameListArray];
+
+    // removing the element using splice
+    temp.splice(idx, 1);
+
+    // updating the list
+    updateList(temp);
+  };
+
+  const setMatchFromFirebase = async (gameAreaID) => {
+    await updateDoc(doc(db, "GameArea", gameAreaID), {
+      isMatch: true,
+    }).then(() => {
+      // Open Game Area Screen
+      navigation.navigate("GameArea");
+    });
+  };
 
   // init Screen
 
@@ -44,15 +72,23 @@ export default function GameListScreen({ navigation }) {
     gameListFirestore();
   }, []);
 
-  renderItem = ({ item, index }) => {
-    return (
-      <List.Item
-        title={item.gameAreaID}
-        description="Item description"
-        left={(props) => <List.Icon {...props} icon="folder" />}
-      />
-    );
-  };
+  renderItem = useCallback(
+    ({ item }) => (
+      <TouchableOpacity
+        onPress={() => {
+          // Set Match
+          setMatchFromFirebase(item.gameAreaID);
+        }}
+      >
+        <List.Item
+          title={item.gameAreaID}
+          description="Item description"
+          left={(props) => <List.Icon {...props} icon="folder" />}
+        />
+      </TouchableOpacity>
+    ),
+    []
+  );
 
   return (
     <>
