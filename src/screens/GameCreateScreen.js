@@ -1,4 +1,4 @@
-import { Appbar, List, TextInput, Button } from "react-native-paper";
+import { Appbar } from "react-native-paper";
 import {
   addDoc,
   doc,
@@ -8,8 +8,6 @@ import {
   onSnapshot,
 } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
-import { async } from "@firebase/util";
-import { useState } from "react";
 
 export default function GameCreateScreen({ navigation }) {
   // ...
@@ -26,6 +24,8 @@ export default function GameCreateScreen({ navigation }) {
     // ...
     await addDoc(collection(db, "GameArea"), {
       isMatch: false,
+      gameArea: ["-", "-", "-", "-", "-", "-", "-", "-", "-"],
+      whichOnePlay: "creater"
     }).then((docRef) => {
       gameAreaDocID = docRef.id;
       postGameListFirestore(docRef.id);
@@ -39,7 +39,7 @@ export default function GameCreateScreen({ navigation }) {
   async function postGameListFirestore(docID) {
     await setDoc(doc(db, "GameList", docID), {
       gameAreaID: docID,
-      userTurn: "creater",
+      userTurn: "creater"
     });
   }
 
@@ -61,7 +61,7 @@ export default function GameCreateScreen({ navigation }) {
           // Open Game Area
           navigation.navigate("GameArea", {
             userType: "creater",
-            gameAreaDocID: gameAreaDocID,
+            gameAreaID: gameAreaDocID,
           });
         }
       }
