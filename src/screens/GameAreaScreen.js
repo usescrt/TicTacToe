@@ -34,7 +34,6 @@ export default function GameAreaScreen({ route }) {
         userType === doc.data().whichOnePlay
           ? setIsPlay(false)
           : setIsPlay(true);
-        console.log("-------" + userType + "----------");
 
         checkWin(temp);
       }
@@ -108,7 +107,7 @@ export default function GameAreaScreen({ route }) {
     if (tempIndex === temp.length) {
       // Reset Game
       await updateDoc(doc(db, "GameArea", gameAreaID), {
-        gameArea: ["-", "-", "-", "-", "-", "-", "-", "-", "-"],
+        gameArea: ["","","","","","","","",""],
         whichOnePlay: "creater",
       });
     }
