@@ -2,17 +2,8 @@ import React, { useState, useEffect } from "react";
 import { signInAnonymously, getAuth, onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../../firebaseConfig";
 import { setDoc, doc } from "firebase/firestore";
-import {
-  Appbar,
-  TextInput,
-  Button,
-  Dialog,
-  Portal,
-  Provider,
-  Text,
-  ActivityIndicator,
-  HelperText,
-} from "react-native-paper";
+import { Appbar, TextInput, HelperText } from "react-native-paper";
+import Loading from "../components/Loading";
 
 function HomeScreen({ navigation }) {
   // Set TextInput Data
@@ -21,7 +12,7 @@ function HomeScreen({ navigation }) {
 
   // ...
 
-  var [visible, setVisible] = React.useState(true);
+  var [isLoading, setLoading] = React.useState(true);
 
   // init page
 
@@ -41,7 +32,7 @@ function HomeScreen({ navigation }) {
         openGameListScreen();
       } else {
         // No user is signed in.
-        setVisible(false);
+        setLoading(false);
       }
     });
   };
@@ -61,14 +52,13 @@ function HomeScreen({ navigation }) {
       username: textInput,
       userUID: userUID,
     }).then(() => {
-      setVisible(false);
       openGameListScreen();
     });
   };
 
   const handleDoneButton = () => {
     if (textInput.length > 2) {
-      setVisible(true);
+      setLoading(true);
       signIn();
     }
   };
@@ -82,18 +72,9 @@ function HomeScreen({ navigation }) {
     navigation.navigate("GameList");
   };
 
-  if (visible)
-    return (
-      <Provider visible={true}>
-        <Portal>
-          <Dialog visible={visible}>
-            <Dialog.Content>
-              <ActivityIndicator size={"large"} />
-            </Dialog.Content>
-          </Dialog>
-        </Portal>
-      </Provider>
-    );
+  // Check isLoading
+
+  if (isLoading) return <Loading visible={isLoading} />;
 
   return (
     <>
