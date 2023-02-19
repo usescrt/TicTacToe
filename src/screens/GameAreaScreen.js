@@ -1,11 +1,19 @@
-import { Appbar, Text, Surface, FlatList } from "react-native-paper";
+import {
+  Appbar,
+  Text,
+  Surface,
+  Provider,
+  Portal,
+  Dialog,
+  Button,
+} from "react-native-paper";
 import React, { useState, useEffect, useCallback } from "react";
 import { HStack } from "@react-native-material/core";
 import { TouchableOpacity, View } from "react-native";
 import { onSnapshot, doc, updateDoc } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
 
-export default function GameAreaScreen({ route }) {
+export default function GameAreaScreen({ route, navigation }) {
   const { userType, gameAreaID, rowNumber } = route.params;
 
   const [gameArray, setGameArray] = useState([]);
@@ -15,6 +23,10 @@ export default function GameAreaScreen({ route }) {
   var [userMark, setUserMark] = useState("");
 
   var [isPlay, setIsPlay] = useState(false);
+
+  var [showWinnerDialog, setShowWinnerDialog] = useState(false);
+
+  var [winnerMessage, setWinnerMessage] = useState("");
 
   var listenGameAreaChange;
 
@@ -64,6 +76,7 @@ export default function GameAreaScreen({ route }) {
         ) {
           console.log("if = 1");
           console.log("Winner!");
+          postGameResult(temp[i]);
           return;
         }
       }
@@ -79,6 +92,7 @@ export default function GameAreaScreen({ route }) {
       ) {
         console.log("if = 2");
         console.log("Winner!");
+        postGameResult(temp[index]);
         return;
       }
     }
@@ -93,6 +107,7 @@ export default function GameAreaScreen({ route }) {
       ) {
         console.log("if = 3");
         console.log("Winner!");
+        postGameResult(temp[index]);
         return;
       }
     }
@@ -107,6 +122,7 @@ export default function GameAreaScreen({ route }) {
       ) {
         console.log("if = 4");
         console.log("Winner!");
+        postGameResult(temp[index]);
         return;
       }
     }
@@ -152,6 +168,41 @@ export default function GameAreaScreen({ route }) {
     });
   };
 
+  // Post Game Result
+
+  const postGameResult = async (value) => {
+    // ...
+    listenGameAreaChange();
+
+    const winnerUserType = value === "X" ? "creater" : "join";
+
+    if (userType === winnerUserType) {
+      // Set Message
+      setWinnerMessage("You Win");
+      // Show Winner Dialog
+      setShowWinnerDialog(true);
+    } else {
+      // Set Message
+      setWinnerMessage("You Lost");
+      // Show Winner Dialog
+      setShowWinnerDialog(true);
+    }
+
+    await updateDoc(doc(db, "GameArea", gameAreaID), {
+      winner: winnerUserType,
+    }).then(async () => {
+      await updateDoc(doc(db, "GameList", gameAreaID), {
+        winner: winnerUserType,
+        listType: "complatedGame",
+      });
+    });
+  };
+
+  const handleDialog = () => {
+    setShowWinnerDialog(false);
+    navigation.navigate("GameList");
+  };
+
   const row = () => {
     let rows = [];
     for (let index = 0; index < rowNumber * 3; index = index + 3) {
@@ -163,12 +214,20 @@ export default function GameAreaScreen({ route }) {
           >
             <View
               style={{
-                width: 60,
-                height: 60,
+                width: 80,
+                height: 80,
                 backgroundColor: "#faf089",
+                justifyContent: "center",
               }}
             >
-              <Text>{gameArray[0 + index]}</Text>
+              <Text
+                style={{
+                  textAlign: "center",
+                  fontSize: 40,
+                }}
+              >
+                {gameArray[0 + index]}
+              </Text>
             </View>
           </TouchableOpacity>
           <TouchableOpacity
@@ -177,12 +236,20 @@ export default function GameAreaScreen({ route }) {
           >
             <View
               style={{
-                width: 60,
-                height: 60,
+                width: 80,
+                height: 80,
                 backgroundColor: "#faf089",
+                justifyContent: "center",
               }}
             >
-              <Text>{gameArray[1 + index]}</Text>
+              <Text
+                style={{
+                  textAlign: "center",
+                  fontSize: 40,
+                }}
+              >
+                {gameArray[1 + index]}
+              </Text>
             </View>
           </TouchableOpacity>
           <TouchableOpacity
@@ -191,12 +258,20 @@ export default function GameAreaScreen({ route }) {
           >
             <View
               style={{
-                width: 60,
-                height: 60,
+                width: 80,
+                height: 80,
                 backgroundColor: "#faf089",
+                justifyContent: "center",
               }}
             >
-              <Text>{gameArray[2 + index]}</Text>
+              <Text
+                style={{
+                  textAlign: "center",
+                  fontSize: 40,
+                }}
+              >
+                {gameArray[2 + index]}
+              </Text>
             </View>
           </TouchableOpacity>
         </HStack>
@@ -207,15 +282,39 @@ export default function GameAreaScreen({ route }) {
 
   return (
     <>
-      <Appbar.Header>
-        <Appbar.Content title="Game Area" />
-      </Appbar.Header>
+      <Provider>
+        <Appbar.Header>
+          <Appbar.Content title="Game Area" />
+        </Appbar.Header>
 
-      <Surface elevation={4}>
-        <Text>{whichOnePlay === userType ? "Your Turn" : "Your That"}</Text>
-      </Surface>
+        <Surface elevation={4}>
+          <Text
+            style={{
+              textAlign: "center",
+              fontSize: 20,
+            }}
+          >
+            {whichOnePlay === userType ? "It is your turn" : "It's the opponent's turn"}
+          </Text>
+        </Surface>
 
-      <View>{row()}</View>
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          {row()}
+        </View>
+
+        <Portal>
+          <Dialog visible={showWinnerDialog}>
+            <Dialog.Content>
+              <Text>{winnerMessage}</Text>
+            </Dialog.Content>
+            <Dialog.Actions>
+              <Button onPress={() => handleDialog()}>Ok</Button>
+            </Dialog.Actions>
+          </Dialog>
+        </Portal>
+      </Provider>
     </>
   );
 }

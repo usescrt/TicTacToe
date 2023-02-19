@@ -45,7 +45,9 @@ export default function GameListScreen({ navigation }) {
           item.doc.data().gameAreaID,
           item.doc.data().listType,
           item.doc.data().createrName,
-          item.doc.data().rowNumber
+          item.doc.data().rowNumber,
+          item.doc.data().joinUsername,
+          item.doc.data().winner,
         );
 
         // if add game area, added from array
@@ -126,10 +128,13 @@ export default function GameListScreen({ navigation }) {
     } else if (item.listType === "complatedGame") {
       return (
         <List.Item
-          title={item.gameAreaID}
-          description="Open Game"
+          title={item.createrName + " vs " + item.joinUsername}
+          description={
+            item.winner === "creater"
+              ? "Winner " + item.createrName
+              : "Winner " + item.joinUsername
+          }
           left={(props) => <List.Icon {...props} icon="gamepad-variant" />}
-          right={(props) => <List.Icon {...props} icon="arrow-right" />}
         />
       );
     }
