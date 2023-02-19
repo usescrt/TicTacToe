@@ -44,7 +44,8 @@ export default function GameListScreen({ navigation }) {
         const temp = new GameListModel(
           item.doc.data().gameAreaID,
           item.doc.data().listType,
-          item.doc.data().createrName
+          item.doc.data().createrName,
+          item.doc.data().rowNumber
         );
 
         // if add game area, added from array
@@ -63,28 +64,35 @@ export default function GameListScreen({ navigation }) {
 
   // Get Username from firestore then post Match and username
 
-  const getUsernameFromFirestore = async (gameAreaID) => {
+  const getUsernameFromFirestore = async (gameAreaID, rowNumber) => {
     // Get UserUID
     const tempUserUID = auth.currentUser.uid;
     const docRef = doc(db, "Users", tempUserUID);
     await getDoc(docRef).then((result) => {
       const tempUsername = result.data().username;
-      setMatchFromFirebase(gameAreaID, tempUsername);
+      setMatchFromFirebase(gameAreaID, tempUsername, rowNumber);
     });
   };
 
   // Set Users Match Firestore
 
-  const setMatchFromFirebase = async (gameAreaID, username) => {
-    await updateDoc(doc(db, "GameArea", gameAreaID), {
-      isMatch: true,
+  const setMatchFromFirebase = async (gameAreaID, username, rowNumber) => {
+    // Update GameList listtype
+    await updateDoc(doc(db, "GameList", gameAreaID), {
       joinUsername: username,
       listType: "gaming",
-    }).then(() => {
-      // Open Game Area Screen
-      navigation.navigate("GameArea", {
-        userType: "join",
-        gameAreaID: gameAreaID,
+    }).then(async () => {
+      // Update GameArea match
+      await updateDoc(doc(db, "GameArea", gameAreaID), {
+        isMatch: true,
+        joinUsername: username,
+      }).then(() => {
+        // Open Game Area Screen
+        navigation.navigate("GameArea", {
+          userType: "join",
+          gameAreaID: gameAreaID,
+          rowNumber: rowNumber,
+        });
       });
     });
   };
@@ -103,7 +111,9 @@ export default function GameListScreen({ navigation }) {
     if (item.listType === "open") {
       return (
         <TouchableOpacity
-          onPress={() => getUsernameFromFirestore(item.gameAreaID)}
+          onPress={() =>
+            getUsernameFromFirestore(item.gameAreaID, item.rowNumber)
+          }
         >
           <List.Item
             title={item.createrName}

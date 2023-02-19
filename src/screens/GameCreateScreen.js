@@ -28,10 +28,10 @@ GameArea Firestore Template Data
 Game List Firestore Template Data
 {
   gameAreaID: "dsadsadsadsadsadsa",
-  userTurn: "creater", ====> "creater" or "join"
   listType: "open" ====> "open" or or "gaming" or "complatedGame"
   createrName: "Murat"
   joinName: "Hasan" ====> this data update from join user
+  rowNumber: "3"
 }
 */
 
@@ -67,12 +67,23 @@ export default function GameCreateScreen({ navigation }) {
   // Post GameArea from server
 
   const postGameAreaFirestore = async (username) => {
+    const parseRowNumber = parseInt(textInputRowNumber);
+
+    var createGameArea = [];
+
+    for (let index = 0; index < parseRowNumber; index++) {
+      for (let index = 0; index < 3; index++) {
+        createGameArea.push("");
+      }
+    }
+
     // ...
     await addDoc(collection(db, "GameArea"), {
       isMatch: false,
-      gameArea: ["", "", "", "", "", "", "", "", ""],
+      gameArea: createGameArea,
       whichOnePlay: "creater",
       createrName: username,
+      rowNumber: parseRowNumber,
     }).then((docRef) => {
       gameAreaDocID = docRef.id;
       // Post game list doc
@@ -84,13 +95,12 @@ export default function GameCreateScreen({ navigation }) {
 
   // Post GameList doc
 
-  async function postGameListFirestore(docID, username) {
+  async function postGameListFirestore(docID, username, rowNumber) {
     await setDoc(doc(db, "GameList", docID), {
       gameAreaID: docID,
-      userTurn: "creater",
       listType: "open",
       createrName: username,
-      rowNumber: parseInt(textInputRowNumber),
+      rowNumber: parseInt(textInputRowNumber)
     });
   }
 
@@ -114,6 +124,7 @@ export default function GameCreateScreen({ navigation }) {
           navigation.navigate("GameArea", {
             userType: "creater",
             gameAreaID: gameAreaDocID,
+            rowNumber: parseInt(textInputRowNumber),
           });
         }
       }

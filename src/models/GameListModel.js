@@ -1,8 +1,9 @@
 class GameListModel {
-  constructor(gameAreaID, listType, createrName) {
+  constructor(gameAreaID, listType, createrName, rowNumber) {
     this.gameAreaID = gameAreaID;
     this.listType = listType;
     this.createrName = createrName;
+    this.rowNumber = rowNumber;
   }
 }
 
