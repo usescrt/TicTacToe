@@ -1,15 +1,9 @@
-import { Appbar, List, TextInput, Button } from "react-native-paper";
+import { Appbar, List } from "react-native-paper";
 import { onSnapshot, doc, collection, updateDoc } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
 import React, { useState, useEffect, useCallback } from "react";
-import { async } from "@firebase/util";
 import { FlatList, TouchableOpacity } from "react-native";
-
-class GList {
-  constructor(gameAreaID) {
-    this.gameAreaID = gameAreaID;
-  }
-}
+import GameListModel from "../models/GameListModel";
 
 export default function GameListScreen({ navigation }) {
   // Game List Array
@@ -29,7 +23,7 @@ export default function GameListScreen({ navigation }) {
   const gameListFirestore = () => {
     unsubscribeGameList = onSnapshot(collection(db, "GameList"), (doc) => {
       doc.docChanges().forEach((item) => {
-        const temp = new GList(item.doc.data().gameAreaID);
+        const temp = new GameListModel(item.doc.data().gameAreaID);
 
         // if add game area, added from array
 
